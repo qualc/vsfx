@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "baseUrl": "./src",
+        "outDir": "./dist",
+        "target": "es5",
+        "module": "commonjs" /* Specify JSX code generation: 'preserve', 'react-native', or 'react'. */,
+        "declaration": true,
+        "strict": true,
+        "noImplicitAny": false,
+        "esModuleInterop": true,
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "forceConsistentCasingInFileNames": true
+    },
+    "exclude": ["node_modules"],
+    "include": ["src/**/*"]
+}

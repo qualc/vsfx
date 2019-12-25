@@ -1,0 +1,24 @@
+{
+    "name": "vsfx",
+    "version": "1.0.0",
+    "main": "./dist/index.js",
+    "directories": {
+        "test": "test"
+    },
+    "scripts": {
+        "tsc": "tsc --target ES5",
+        "watch": "tsc --target ES5 -w --listFiles",
+        "tsc-decorators": "tsc --target ES5 --experimentalDecorators"
+    },
+    "author": "",
+    "license": "ISC",
+    "description": "",
+    "dependencies": {
+        "mime": "^2.4.4",
+        "path-to-regexp": "^6.1.0",
+        "statuses": "^1.5.0"
+    },
+    "devDependencies": {
+        "@types/statuses": "^1.5.0"
+    }
+}
