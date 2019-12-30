@@ -1,14 +1,17 @@
 import { NextFunction } from '../index.d';
+import depd from 'depd';
 import * as fs from 'fs';
 import * as path from 'path';
 import { use } from '../server';
+
+const deprecate = depd('vsfx');
 
 import { METHOD_METADATA, CONTROLLER_METADATA } from '../global';
 
 // Reflect.getMetadata(PATH_METADATA, SomeClass); // '/test'
 
 // mapRoute(new SomeClass());
-export const DefineRoute = (baseUrl: string | string[], controllersPath?: string | string[]) => {
+export const defineRoute = (baseUrl: string | string[], controllersPath?: string | string[]) => {
     if (baseUrl && !controllersPath) {
         controllersPath = baseUrl;
         baseUrl = '/';
@@ -21,7 +24,7 @@ export const DefineRoute = (baseUrl: string | string[], controllersPath?: string
         if (controllersPath && Array.isArray(controllersPath)) {
             // 遍历挂载 controller
             controllersPath.forEach(cpaths => {
-                classs.push(...__explorer(cpaths));
+                classs.push(...recursionFile(cpaths));
             });
         }
         _defineMetadata(baseUrl.toString(), classs);
@@ -34,13 +37,16 @@ function _defineMetadata(baseUrl: string, classs: [any?]) {
     classs.forEach(classItem => {
         Object.keys(classItem).map(key => {
             const item = classItem[key];
-            const controllerPath = _validatePath(baseUrl + Reflect.getMetadata(CONTROLLER_METADATA, item));
-            mapRoute(new item(), controllerPath);
+            const metadata = Reflect.getMetadata(CONTROLLER_METADATA, item);
+            if (!metadata) return;
+            const { path, baseOpts = {} } = metadata;
+            const controllerPath = _validatePath(baseUrl + path);
+            mapRoute(new item(), controllerPath, baseOpts);
         });
     });
 }
 
-function mapRoute(instance: Object, baseUrl) {
+function mapRoute(instance: Object, baseUrl, baseOpts) {
     const prototype = Object.getPrototypeOf(instance);
 
     // // 筛选出类的 methodName
@@ -49,14 +55,25 @@ function mapRoute(instance: Object, baseUrl) {
         const handle = prototype[methodName];
 
         // 取出定义的 metadata
-        let path = Reflect.getMetadata(CONTROLLER_METADATA, handle);
+        const metadata = Reflect.getMetadata(CONTROLLER_METADATA, handle);
+        let { path, opts = {}, _type } = metadata || {};
+        if (_type != 'method') return;
         const method = Reflect.getMetadata(METHOD_METADATA, handle);
         path = baseUrl + _validatePath(path);
         path = path.replace(/(\w+)\/$/, '');
+        Object.assign(baseOpts, opts);
         use(method, path, function(req: any, res: any, next: NextFunction) {
-            handle.call(instance, req, res, next);
+            req.opts = Object.freeze(opts);
+            Promise.resolve(handle.call(instance, req, res, next)).catch(err => {
+                if (typeof req.app?.catchFn == 'function') {
+                    req.app?.catchFn(err, req, res, next);
+                } else {
+                    deprecate(err.stack);
+                    res.sendStatus(500);
+                }
+            });
         });
-        use(method, path, handle.bind(instance));
+        // use(method, path, handle.bind(instance));
         // return {
         //     path,
         //     method,
@@ -73,7 +90,7 @@ function _validatePath(path: string) {
 }
 
 // 递归加载 controller， 使其注入到 Reflect 中
-function __explorer(cpaths: string): [any?] {
+export const recursionFile = (cpaths: string): [any?] => {
     const classs: [any?] = [];
     try {
         let files = fs.readdirSync(cpaths);
@@ -82,7 +99,7 @@ function __explorer(cpaths: string): [any?] {
             try {
                 let statInfo = fs.statSync(_path);
                 if (statInfo.isDirectory()) {
-                    classs.push(...__explorer(_path));
+                    classs.push(...recursionFile(_path));
                 } else {
                     if (/\.[jt]s$/.test(path.parse(_path).ext)) {
                         classs.push(require(_path));
@@ -93,7 +110,7 @@ function __explorer(cpaths: string): [any?] {
             }
         });
     } catch (e) {
-        console.log(`connect获取文件失败啦~err:${e.message}`);
+        console.log(`connect获取文件失败啦~err:${e.stack}`);
     }
     return classs;
-}
+};

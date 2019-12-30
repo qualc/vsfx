@@ -2,9 +2,11 @@ import { VResponse } from '../index.d';
 import { IncomingMessage } from 'http';
 import url from 'url';
 import qs from 'querystring';
+import Application from './application';
 
 export default class IncomingMessageCustom extends IncomingMessage {
     public res: VResponse | undefined;
+    app: Application = <Application>{};
     body: any = {};
     log(msg: any) {
         console.log(JSON.stringify(msg));

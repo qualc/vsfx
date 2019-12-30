@@ -1,5 +1,5 @@
 /// <reference path="../index.d.ts" />
-import { RouteHandle, VRequest, VResponse } from '../index.d';
+// import { RouteHandle, VRequest, VResponse } from '../index.d';
 import http from 'http';
 import path from 'path';
 import depd from 'depd';
@@ -25,6 +25,7 @@ class Application {
     private router: Router;
     private staticStack: RegExp[] = [];
     private interceptStack: Intercept[] = [];
+    private catchFn: Function | undefined = undefined;
     constructor() {
         this.router = new Router(this);
         this.defaultConfiguration();
@@ -49,35 +50,24 @@ class Application {
                 return;
             }
         }
-        // const intercept = this.interceptStack.find(({ reg }: Intercept) => (<RegExp>reg).test(filePath));
-        // if (intercept && intercept.handle) {
-        //     Promise.resolve(intercept.handle(req, res)).then(vali => {
-        //         if (vali) {
-        //             this.router.handle(req, res);
-        //         } else {
-        //             console.log('###########');
-        //             res.send('~~');
-        //         }
-        //     });
-
-        //     return;
-        // }
         this.router.handle(req, res);
     }
+    catch(handle: Function) {
+        this.catchFn = handle;
+    }
     useIntercept(path: string | Function, handle?: Function) {
-        deprecate('please use `app.beforeUse` instead');
-        this.beforeUse(path, handle);
-        // if (!handle && typeof path == 'function') {
+        deprecate('please use app.beforeUse inserted');
+        if (typeof path == 'function') {
+            handle = path;
+            path = '/';
+        }
+        this.router.useMiddleware(path, <RouteHandle>handle, 0);
+        // if (typeof path == 'function') {
         //     handle = path;
         //     path = '/';
-        // } else if (!handle && typeof path != 'function') {
-        //     return;
         // }
-        // this.interceptStack.push({
-        //     path: path.toString(),
-        //     reg: pathToRegexp(path.toString(), [], { end: false }),
-        //     handle
-        // });
+        // const reg = pathToRegexp(path, [], { end: false });
+        // this.interceptStack.push({ path, handle, reg });
     }
     static(filePath: string) {
         this.staticStack.push(pathToRegexp(filePath, [], { end: false }));
@@ -113,6 +103,7 @@ class Application {
             (req, res) => {
                 req.res = res;
                 res.req = req;
+                req.app = this;
                 res.app = this;
                 this.handle(req, res);
             }

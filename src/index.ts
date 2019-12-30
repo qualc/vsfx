@@ -2,28 +2,39 @@ import 'reflect-metadata';
 import path from 'path';
 import fs from 'fs';
 import server, { use, useIntercept } from './server';
-import { DefineRoute } from './lib/connect';
+import { defineRoute, recursionFile } from './lib/connect';
 
-import { Controller, Get, Post } from './decorator';
+import { Controller, Service, Get, Post, Interceptors } from './decorator';
 
 const cwd = process.cwd();
 let vsfxJson = fs.readFileSync(path.join(cwd, 'vsfx.config.json')).toString();
 if (vsfxJson) {
     try {
         vsfxJson = JSON.parse(vsfxJson);
+        const base = vsfxJson['base'] ? path.join(cwd, vsfxJson['base']) : cwd;
+        const servicePath = vsfxJson['service'];
+        if (servicePath) {
+            if (Array.isArray(servicePath)) {
+                servicePath.forEach(service => {
+                    recursionFile(path.join(base, service));
+                });
+            } else if (typeof servicePath === 'string') {
+                recursionFile(path.join(base, servicePath));
+            }
+        }
         const controllerPath = vsfxJson['controller'];
         if (controllerPath) {
             if (Array.isArray(controllerPath)) {
                 controllerPath.forEach(controller => {
                     if (typeof controller === 'string') {
-                        DefineRoute(path.join(cwd, controller));
+                        defineRoute(path.join(base, controller));
                     } else if (controller.path) {
-                        const base = controller.base.toString() || '/';
-                        DefineRoute(base, path.join(cwd, controller.path));
+                        const baseUrl = controller.base.toString() || '/';
+                        defineRoute(baseUrl, path.join(base, controller.path));
                     }
                 });
             } else if (typeof controllerPath === 'string') {
-                DefineRoute(path.join(cwd, controllerPath));
+                defineRoute(path.join(base, controllerPath));
             }
         }
     } catch (err) {
@@ -33,5 +44,5 @@ if (vsfxJson) {
 
 // export { Controller, Get, Post } from './decorator';
 
-export { use, useIntercept, DefineRoute, Controller, Get, Post };
+export { use, useIntercept, defineRoute, Controller, Service, Get, Post, Interceptors };
 export default server;

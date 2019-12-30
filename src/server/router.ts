@@ -11,6 +11,7 @@ type Route = {
     path: string;
     handle: RouteHandle;
     keys: Array<pathRegexp.Key>;
+    type: number; // 0 route  1 before  2 after  3 intercept
     params: {
         [key: string]: any;
     };
@@ -20,6 +21,7 @@ class Router {
     private stack: Array<Route> = [];
     private beforeStack: Array<Route> = [];
     private afterStack: Array<Route> = [];
+    private interceptStack: Array<Route> = [];
     private app: Application;
     constructor(app: Application) {
         this.app = app;
@@ -40,6 +42,7 @@ class Router {
             method: method.toLocaleLowerCase(),
             path,
             handle,
+            type: 0,
             keys: [],
             params: {}
         };
@@ -58,6 +61,7 @@ class Router {
         const route: Route = {
             method: 'all',
             path,
+            type,
             handle: <RouteHandle>handle,
             keys: [],
             params: {}
@@ -65,8 +69,10 @@ class Router {
         route.reg = pathToRegexp(path, route.keys, { end: false });
         if (type == 1) {
             this.beforeStack.push(route);
-        } else {
+        } else if (type == 2) {
             this.afterStack.push(route);
+        } else {
+            this.interceptStack.push(route);
         }
     }
     match(route: Route, path: string) {
@@ -91,7 +97,7 @@ class Router {
         return true;
     }
     handle(req: VRequest, res: VResponse) {
-        const { afterStack, beforeStack, stack } = this;
+        const { afterStack, beforeStack, stack, interceptStack } = this;
         const stacks: Array<Route> = [...beforeStack, ...stack, ...afterStack],
             path = req.url ? url.parse(req.url).pathname : null;
         let index = 0;
@@ -100,7 +106,7 @@ class Router {
             throw Error('path是空的');
         }
         const method = req.method?.toLocaleLowerCase();
-        // 简单的 express洋葱模型
+
         const next = (err?: Error) => {
             if (err) {
                 res.statusCode = 500;
@@ -124,8 +130,54 @@ class Router {
             }
             if (match && route) {
                 try {
+                    req.route = route;
                     req.params = route.params || {};
-                    route.handle(req, res, next);
+                    // route.handle(req, res, next);
+                    if (route.type === 0) {
+                        req.params = route.params || {};
+                        if (interceptStack.length) {
+                            let cindex = 0;
+                            const next2 = (err?: Error) => {
+                                if (err) {
+                                    res.statusCode = 500;
+                                    res.end(err.stack);
+                                    return;
+                                }
+                                if (cindex == interceptStack.length) {
+                                    route.handle(req, res, next);
+                                    return;
+                                }
+                                let match: any = null,
+                                    intercept = <Route>{};
+                                while (match !== true && cindex < interceptStack.length) {
+                                    intercept = interceptStack[cindex++];
+                                    if (!intercept) {
+                                        continue;
+                                    }
+                                    if (!method || (intercept.method !== 'all' && method !== intercept.method)) {
+                                        continue;
+                                    }
+                                    match = this.match(intercept, path);
+                                    if (match !== true) {
+                                        continue;
+                                    }
+                                }
+                                if (match && intercept) {
+                                    if (cindex <= interceptStack.length) {
+                                        intercept.handle(req, res, next2);
+                                    } else {
+                                        route.handle(req, res, next);
+                                    }
+                                }
+                            };
+                            next2();
+                            return;
+                        } else {
+                            route.handle(req, res, next);
+                        }
+                    } else {
+                        route.handle(req, res, next);
+                    }
                 } catch (e) {
                     res.statusCode = 500;
                     res.end(e.stack);
