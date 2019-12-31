@@ -1,12 +1,12 @@
 {
     "name": "vsfx",
-    "version": "0.0.1",
+    "version": "0.0.7",
     "main": "./dist/index.js",
     "directories": {
         "test": "test"
     },
     "scripts": {
-        "tsc": "tsc --target ES5",
+        "build": "tsc --target ES5",
         "watch": "tsc --target ES5 -w --listFiles",
         "tsc-decorators": "tsc --target ES5 --experimentalDecorators"
     },
@@ -22,12 +22,17 @@
     "license": "ISC",
     "description": "",
     "dependencies": {
+        "content-type": "^1.0.4",
         "depd": "^2.0.0",
+        "etag": "^1.8.1",
+        "fresh": "^0.5.2",
         "mime": "^2.4.4",
         "path-to-regexp": "^6.1.0",
+        "reflect-metadata": "^0.1.13",
         "statuses": "^1.5.0"
     },
     "devDependencies": {
+        "@types/node": "^13.1.2",
         "@types/statuses": "^1.5.0"
     }
 }

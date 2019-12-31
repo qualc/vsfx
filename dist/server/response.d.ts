@@ -1,6 +1,6 @@
+/// <reference path="../../vsfx.d.ts" />
 /// <reference types="node" />
-/// <reference types="vsfx/src" />
-import { VRequest } from '../index.d';
+import { VRequest } from '../../vsfx';
 import { ServerResponse } from 'http';
 import Application from './application';
 export default class ServerResponseCustom extends ServerResponse {
@@ -14,5 +14,5 @@ export default class ServerResponseCustom extends ServerResponse {
     json(chunk: any): this | undefined;
     set(field: string, value: string): void;
     contentType(value: string): void;
-    get fresh(): boolean;
+    get fresh(): any;
 }

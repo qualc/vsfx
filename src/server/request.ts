@@ -1,4 +1,4 @@
-import { VResponse } from '../index.d';
+import { VResponse } from '../../vsfx';
 import { IncomingMessage } from 'http';
 import url from 'url';
 import qs from 'querystring';

@@ -1,5 +1,4 @@
-/// <reference path="../index.d.ts" />
-// import { RouteHandle, VRequest, VResponse } from '../index.d';
+import { RouteHandle, VRequest, VResponse } from '../../vsfx.d';
 import http from 'http';
 import path from 'path';
 import depd from 'depd';

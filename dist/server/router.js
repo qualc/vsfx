@@ -142,7 +142,6 @@ var Router = /** @class */ (function () {
                     // route.handle(req, res, next);
                     if (route.type === 0) {
                         req.params = route.params || {};
-                        console.log('@@ 1', interceptStack.length, route);
                         if (interceptStack.length) {
                             var cindex_1 = 0;
                             var next2_1 = function (err) {

@@ -1,5 +1,5 @@
-/// <reference path="../index.d.ts" />
-import { VRequest } from '../index.d';
+/// <reference path="../../vsfx.d.ts" />
+import { VRequest } from '../../vsfx';
 import { ServerResponse } from 'http';
 import fs from 'fs';
 import mime from 'mime';

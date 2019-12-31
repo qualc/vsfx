@@ -10,8 +10,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-/// <reference path="../index.d.ts" />
-// import { RouteHandle, VRequest, VResponse } from '../index.d';
 var http_1 = __importDefault(require("http"));
 var path_1 = __importDefault(require("path"));
 var depd_1 = __importDefault(require("depd"));

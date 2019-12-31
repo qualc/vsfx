@@ -1,5 +1,5 @@
 /// <reference types="node" />
-/// <reference types="vsfx/src" />
+import { RouteHandle } from '../../vsfx.d';
 import http from 'http';
 declare type Config = {
     [key: string]: any;

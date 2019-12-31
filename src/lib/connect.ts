@@ -1,4 +1,4 @@
-import { NextFunction } from '../index.d';
+import { NextFunction } from '../../vsfx';
 import depd from 'depd';
 import * as fs from 'fs';
 import * as path from 'path';

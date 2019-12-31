@@ -1,6 +1,6 @@
 import http from 'http';
 import pathRegexp, { pathToRegexp } from 'path-to-regexp';
-import Router from './server/router';
+import Router from './src/server/router';
 
 declare type Config = {
     [key: string]: any;
@@ -12,7 +12,8 @@ type Query = {
 export type Params = Query;
 export type Body = Query;
 export type NextFunction = (err?: any) => void;
-export type RouteHandle = (req: VRequest, res: VResponse, next?: NextFunction) => void;
+export declare type RouteHandle = (req: VRequest, res: VResponse, next?: NextFunction) => void;
+
 export type VRequest = http.IncomingMessageCustom;
 export type VResponse = http.ServerResponseCustom;
 
@@ -41,6 +42,20 @@ export type Route = {
         [key: string]: any;
     };
 };
+export type Class = any;
+export type DecoratorOpts = {
+    [k: string]: any;
+};
+
+export type METHODDATA = {
+    path: string;
+    opts: DecoratorOpts;
+    method: string;
+    fnName: string;
+    value: Function;
+};
+
+export type METHODDATAS = METHODDATA[] | undefined;
 
 declare module 'http' {
     class IncomingMessageCustom extends IncomingMessage {

@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { VResponse } from '../index.d';
+import { VResponse } from '../../vsfx';
 import { IncomingMessage } from 'http';
 import qs from 'querystring';
 import Application from './application';

@@ -1,5 +1,5 @@
-/// <reference path="../index.d.ts" />
-import { RouteHandle, VRequest, VResponse } from '../index.d';
+/// <reference path="../../vsfx.d.ts" />
+import { RouteHandle, VRequest, VResponse } from '../../vsfx';
 import url from 'url';
 import statuses from 'statuses';
 import pathRegexp, { pathToRegexp } from 'path-to-regexp';
@@ -135,7 +135,6 @@ class Router {
                     // route.handle(req, res, next);
                     if (route.type === 0) {
                         req.params = route.params || {};
-                        console.log('@@ 1', interceptStack.length, route);
                         if (interceptStack.length) {
                             let cindex = 0;
                             const next2 = (err?: Error) => {
