@@ -23,6 +23,7 @@ var IncomingMessageCustom = /** @class */ (function (_super) {
     __extends(IncomingMessageCustom, _super);
     function IncomingMessageCustom() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this.app = {};
         _this.body = {};
         return _this;
     }

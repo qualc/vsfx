@@ -8,6 +8,7 @@ declare type Route = {
     path: string;
     handle: RouteHandle;
     keys: Array<pathRegexp.Key>;
+    type: number;
     params: {
         [key: string]: any;
     };
@@ -16,6 +17,7 @@ declare class Router {
     private stack;
     private beforeStack;
     private afterStack;
+    private interceptStack;
     private app;
     constructor(app: Application);
     use(...args: any[]): void;

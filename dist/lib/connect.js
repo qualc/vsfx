@@ -1,4 +1,7 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
@@ -7,13 +10,15 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+var depd_1 = __importDefault(require("depd"));
 var fs = __importStar(require("fs"));
 var path = __importStar(require("path"));
 var server_1 = require("../server");
+var deprecate = depd_1.default('vsfx');
 var global_1 = require("../global");
 // Reflect.getMetadata(PATH_METADATA, SomeClass); // '/test'
 // mapRoute(new SomeClass());
-exports.DefineRoute = function (baseUrl, controllersPath) {
+exports.defineRoute = function (baseUrl, controllersPath) {
     if (baseUrl && !controllersPath) {
         controllersPath = baseUrl;
         baseUrl = '/';
@@ -26,7 +31,7 @@ exports.DefineRoute = function (baseUrl, controllersPath) {
         if (controllersPath && Array.isArray(controllersPath)) {
             // 遍历挂载 controller
             controllersPath.forEach(function (cpaths) {
-                classs_1.push.apply(classs_1, __explorer(cpaths));
+                classs_1.push.apply(classs_1, exports.recursionFile(cpaths));
             });
         }
         _defineMetadata(baseUrl.toString(), classs_1);
@@ -39,26 +44,44 @@ function _defineMetadata(baseUrl, classs) {
     classs.forEach(function (classItem) {
         Object.keys(classItem).map(function (key) {
             var item = classItem[key];
-            var controllerPath = _validatePath(baseUrl + Reflect.getMetadata(global_1.CONTROLLER_METADATA, item));
-            mapRoute(new item(), controllerPath);
+            var metadata = Reflect.getMetadata(global_1.CONTROLLER_METADATA, item);
+            if (!metadata)
+                return;
+            var path = metadata.path, _a = metadata.baseOpts, baseOpts = _a === void 0 ? {} : _a;
+            var controllerPath = _validatePath(baseUrl + path);
+            mapRoute(new item(), controllerPath, baseOpts);
         });
     });
 }
-function mapRoute(instance, baseUrl) {
+function mapRoute(instance, baseUrl, baseOpts) {
     var prototype = Object.getPrototypeOf(instance);
     // // 筛选出类的 methodName
     var methodsNames = Object.getOwnPropertyNames(prototype).filter(function (item) { return item !== 'constructor' && typeof prototype[item] === 'function'; });
     return methodsNames.map(function (methodName) {
         var handle = prototype[methodName];
         // 取出定义的 metadata
-        var path = Reflect.getMetadata(global_1.CONTROLLER_METADATA, handle);
+        var metadata = Reflect.getMetadata(global_1.CONTROLLER_METADATA, handle);
+        var _a = metadata || {}, path = _a.path, _b = _a.opts, opts = _b === void 0 ? {} : _b, _type = _a._type;
+        if (_type != 'method')
+            return;
         var method = Reflect.getMetadata(global_1.METHOD_METADATA, handle);
         path = baseUrl + _validatePath(path);
         path = path.replace(/(\w+)\/$/, '');
+        Object.assign(baseOpts, opts);
         server_1.use(method, path, function (req, res, next) {
-            handle.call(instance, req, res, next);
+            req.opts = Object.freeze(opts);
+            Promise.resolve(handle.call(instance, req, res, next)).catch(function (err) {
+                var _a, _b;
+                if (typeof ((_a = req.app) === null || _a === void 0 ? void 0 : _a.catchFn) == 'function') {
+                    (_b = req.app) === null || _b === void 0 ? void 0 : _b.catchFn(err, req, res, next);
+                }
+                else {
+                    deprecate(err.stack);
+                    res.sendStatus(500);
+                }
+            });
         });
-        server_1.use(method, path, handle.bind(instance));
+        // use(method, path, handle.bind(instance));
         // return {
         //     path,
         //     method,
@@ -74,7 +97,7 @@ function _validatePath(path) {
     return path;
 }
 // 递归加载 controller， 使其注入到 Reflect 中
-function __explorer(cpaths) {
+exports.recursionFile = function (cpaths) {
     var classs = [];
     try {
         var files = fs.readdirSync(cpaths);
@@ -83,7 +106,7 @@ function __explorer(cpaths) {
             try {
                 var statInfo = fs.statSync(_path);
                 if (statInfo.isDirectory()) {
-                    classs.push.apply(classs, __explorer(_path));
+                    classs.push.apply(classs, exports.recursionFile(_path));
                 }
                 else {
                     if (/\.[jt]s$/.test(path.parse(_path).ext)) {
@@ -97,7 +120,7 @@ function __explorer(cpaths) {
         });
     }
     catch (e) {
-        console.log("connect\u83B7\u53D6\u6587\u4EF6\u5931\u8D25\u5566~err:" + e.message);
+        console.log("connect\u83B7\u53D6\u6587\u4EF6\u5931\u8D25\u5566~err:" + e.stack);
     }
     return classs;
-}
+};

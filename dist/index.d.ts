@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import server, { use, useIntercept } from './server';
-import { DefineRoute } from './lib/connect';
-import { Controller, Get, Post } from './decorator';
-export { use, useIntercept, DefineRoute, Controller, Get, Post };
+import { defineRoute } from './lib/connect';
+import { Controller, Service, Get, Post, Interceptors } from './decorator';
+export { use, useIntercept, defineRoute, Controller, Service, Get, Post, Interceptors };
 export default server;

@@ -18,6 +18,7 @@ var Router = /** @class */ (function () {
         this.stack = [];
         this.beforeStack = [];
         this.afterStack = [];
+        this.interceptStack = [];
         this.app = app;
     }
     Router.prototype.use = function () {
@@ -42,6 +43,7 @@ var Router = /** @class */ (function () {
             method: method.toLocaleLowerCase(),
             path: path,
             handle: handle,
+            type: 0,
             keys: [],
             params: {}
         };
@@ -65,6 +67,7 @@ var Router = /** @class */ (function () {
         var route = {
             method: 'all',
             path: path,
+            type: type,
             handle: handle,
             keys: [],
             params: {}
@@ -73,8 +76,11 @@ var Router = /** @class */ (function () {
         if (type == 1) {
             this.beforeStack.push(route);
         }
-        else {
+        else if (type == 2) {
             this.afterStack.push(route);
+        }
+        else {
+            this.interceptStack.push(route);
         }
     };
     Router.prototype.match = function (route, path) {
@@ -101,7 +107,7 @@ var Router = /** @class */ (function () {
     Router.prototype.handle = function (req, res) {
         var _this = this;
         var _a;
-        var _b = this, afterStack = _b.afterStack, beforeStack = _b.beforeStack, stack = _b.stack;
+        var _b = this, afterStack = _b.afterStack, beforeStack = _b.beforeStack, stack = _b.stack, interceptStack = _b.interceptStack;
         var stacks = __spreadArrays(beforeStack, stack, afterStack), path = req.url ? url_1.default.parse(req.url).pathname : null;
         var index = 0;
         if (path == null) {
@@ -109,7 +115,6 @@ var Router = /** @class */ (function () {
             throw Error('path是空的');
         }
         var method = (_a = req.method) === null || _a === void 0 ? void 0 : _a.toLocaleLowerCase();
-        // 简单的 express洋葱模型
         var next = function (err) {
             if (err) {
                 res.statusCode = 500;
@@ -132,8 +137,55 @@ var Router = /** @class */ (function () {
             }
             if (match && route) {
                 try {
+                    req.route = route;
                     req.params = route.params || {};
-                    route.handle(req, res, next);
+                    // route.handle(req, res, next);
+                    if (route.type === 0) {
+                        req.params = route.params || {};
+                        console.log('@@ 1', interceptStack.length, route);
+                        if (interceptStack.length) {
+                            var cindex_1 = 0;
+                            var next2_1 = function (err) {
+                                if (err) {
+                                    res.statusCode = 500;
+                                    res.end(err.stack);
+                                    return;
+                                }
+                                if (cindex_1 == interceptStack.length) {
+                                    route.handle(req, res, next);
+                                    return;
+                                }
+                                var match = null, intercept = {};
+                                while (match !== true && cindex_1 < interceptStack.length) {
+                                    intercept = interceptStack[cindex_1++];
+                                    if (!intercept) {
+                                        continue;
+                                    }
+                                    if (!method || (intercept.method !== 'all' && method !== intercept.method)) {
+                                        continue;
+                                    }
+                                    match = _this.match(intercept, path);
+                                    if (match !== true) {
+                                        continue;
+                                    }
+                                }
+                                if (match && cindex_1 <= interceptStack.length) {
+                                    intercept.handle(req, res, next2_1);
+                                }
+                                else if (cindex_1 >= interceptStack.length) {
+                                    route.handle(req, res, next);
+                                }
+                            };
+                            next2_1();
+                            return;
+                        }
+                        else {
+                            route.handle(req, res, next);
+                        }
+                    }
+                    else {
+                        route.handle(req, res, next);
+                    }
                 }
                 catch (e) {
                     res.statusCode = 500;

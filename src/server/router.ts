@@ -135,6 +135,7 @@ class Router {
                     // route.handle(req, res, next);
                     if (route.type === 0) {
                         req.params = route.params || {};
+                        console.log('@@ 1', interceptStack.length, route);
                         if (interceptStack.length) {
                             let cindex = 0;
                             const next2 = (err?: Error) => {
@@ -162,12 +163,10 @@ class Router {
                                         continue;
                                     }
                                 }
-                                if (match && intercept) {
-                                    if (cindex <= interceptStack.length) {
-                                        intercept.handle(req, res, next2);
-                                    } else {
-                                        route.handle(req, res, next);
-                                    }
+                                if (match && cindex <= interceptStack.length) {
+                                    intercept.handle(req, res, next2);
+                                } else if (cindex >= interceptStack.length) {
+                                    route.handle(req, res, next);
                                 }
                             };
                             next2();

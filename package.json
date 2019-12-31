@@ -1,6 +1,6 @@
 {
     "name": "vsfx",
-    "version": "1.0.0",
+    "version": "0.0.1",
     "main": "./dist/index.js",
     "directories": {
         "test": "test"
@@ -9,6 +9,14 @@
         "tsc": "tsc --target ES5",
         "watch": "tsc --target ES5 -w --listFiles",
         "tsc-decorators": "tsc --target ES5 --experimentalDecorators"
+    },
+    "homepage": "https://github.com/qualc/vsfx#readme",
+    "bugs": {
+        "url": "https://github.com/qualc/vsfx/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/qualc/vsfx.git"
     },
     "author": "",
     "license": "ISC",

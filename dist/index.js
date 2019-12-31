@@ -17,31 +17,45 @@ var server_1 = __importStar(require("./server"));
 exports.use = server_1.use;
 exports.useIntercept = server_1.useIntercept;
 var connect_1 = require("./lib/connect");
-exports.DefineRoute = connect_1.DefineRoute;
+exports.defineRoute = connect_1.defineRoute;
 var decorator_1 = require("./decorator");
 exports.Controller = decorator_1.Controller;
+exports.Service = decorator_1.Service;
 exports.Get = decorator_1.Get;
 exports.Post = decorator_1.Post;
+exports.Interceptors = decorator_1.Interceptors;
 var cwd = process.cwd();
 var vsfxJson = fs_1.default.readFileSync(path_1.default.join(cwd, 'vsfx.config.json')).toString();
 if (vsfxJson) {
     try {
         vsfxJson = JSON.parse(vsfxJson);
+        var base_1 = vsfxJson['base'] ? path_1.default.join(cwd, vsfxJson['base']) : cwd;
+        var servicePath = vsfxJson['service'];
+        if (servicePath) {
+            if (Array.isArray(servicePath)) {
+                servicePath.forEach(function (service) {
+                    connect_1.recursionFile(path_1.default.join(base_1, service));
+                });
+            }
+            else if (typeof servicePath === 'string') {
+                connect_1.recursionFile(path_1.default.join(base_1, servicePath));
+            }
+        }
         var controllerPath = vsfxJson['controller'];
         if (controllerPath) {
             if (Array.isArray(controllerPath)) {
                 controllerPath.forEach(function (controller) {
                     if (typeof controller === 'string') {
-                        connect_1.DefineRoute(path_1.default.join(cwd, controller));
+                        connect_1.defineRoute(path_1.default.join(base_1, controller));
                     }
                     else if (controller.path) {
-                        var base = controller.base.toString() || '/';
-                        connect_1.DefineRoute(base, path_1.default.join(cwd, controller.path));
+                        var baseUrl = controller.base.toString() || '/';
+                        connect_1.defineRoute(baseUrl, path_1.default.join(base_1, controller.path));
                     }
                 });
             }
             else if (typeof controllerPath === 'string') {
-                connect_1.DefineRoute(path_1.default.join(cwd, controllerPath));
+                connect_1.defineRoute(path_1.default.join(base_1, controllerPath));
             }
         }
     }

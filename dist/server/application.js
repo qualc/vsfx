@@ -10,6 +10,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+/// <reference path="../index.d.ts" />
+// import { RouteHandle, VRequest, VResponse } from '../index.d';
 var http_1 = __importDefault(require("http"));
 var path_1 = __importDefault(require("path"));
 var depd_1 = __importDefault(require("depd"));
@@ -25,6 +27,7 @@ var Application = /** @class */ (function () {
         this.config = {};
         this.staticStack = [];
         this.interceptStack = [];
+        this.catchFn = undefined;
         this.router = new router_1.default(this);
         this.defaultConfiguration();
     }
@@ -48,34 +51,24 @@ var Application = /** @class */ (function () {
                 return;
             }
         }
-        // const intercept = this.interceptStack.find(({ reg }: Intercept) => (<RegExp>reg).test(filePath));
-        // if (intercept && intercept.handle) {
-        //     Promise.resolve(intercept.handle(req, res)).then(vali => {
-        //         if (vali) {
-        //             this.router.handle(req, res);
-        //         } else {
-        //             console.log('###########');
-        //             res.send('~~');
-        //         }
-        //     });
-        //     return;
-        // }
         this.router.handle(req, res);
     };
+    Application.prototype.catch = function (handle) {
+        this.catchFn = handle;
+    };
     Application.prototype.useIntercept = function (path, handle) {
-        deprecate('please use `app.beforeUse` instead');
-        this.beforeUse(path, handle);
-        // if (!handle && typeof path == 'function') {
+        deprecate('please use app.beforeUse inserted');
+        if (typeof path == 'function') {
+            handle = path;
+            path = '/';
+        }
+        this.router.useMiddleware(path, handle, 0);
+        // if (typeof path == 'function') {
         //     handle = path;
         //     path = '/';
-        // } else if (!handle && typeof path != 'function') {
-        //     return;
         // }
-        // this.interceptStack.push({
-        //     path: path.toString(),
-        //     reg: pathToRegexp(path.toString(), [], { end: false }),
-        //     handle
-        // });
+        // const reg = pathToRegexp(path, [], { end: false });
+        // this.interceptStack.push({ path, handle, reg });
     };
     Application.prototype.static = function (filePath) {
         this.staticStack.push(path_to_regexp_1.pathToRegexp(filePath, [], { end: false }));
@@ -121,6 +114,7 @@ var Application = /** @class */ (function () {
         }, function (req, res) {
             req.res = res;
             res.req = req;
+            req.app = _this;
             res.app = _this;
             _this.handle(req, res);
         });

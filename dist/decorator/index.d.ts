@@ -1,1 +1,1 @@
-export { Controller, Get, Post } from './mvc';
+export { Controller, Get, Post, Interceptors, Service } from './mvc';
