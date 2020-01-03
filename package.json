@@ -1,64 +1,38 @@
 {
-  "_from": "vsfx@latest",
-  "_id": "vsfx@0.0.8",
-  "_inBundle": false,
-  "_integrity": "sha512-SLDhpwX4PA76ne9Sc/QKlkaoNdcAUsU4KKqXm5kRya//iO3k7vnWk9JtT7nFiT+XNuAdyah9TfST/twQFpn2NQ==",
-  "_location": "/vsfx",
-  "_phantomChildren": {},
-  "_requested": {
-    "type": "tag",
-    "registry": true,
-    "raw": "vsfx@latest",
     "name": "vsfx",
-    "escapedName": "vsfx",
-    "rawSpec": "latest",
-    "saveSpec": null,
-    "fetchSpec": "latest"
-  },
-  "_requiredBy": [
-    "#USER",
-    "/"
-  ],
-  "_resolved": "https://registry.npmjs.org/vsfx/-/vsfx-0.0.8.tgz",
-  "_shasum": "e20ebea8438bae2ebb510793df857681f9557ecd",
-  "_spec": "vsfx@latest",
-  "_where": "D:\\example\\me\\server",
-  "author": "",
-  "bugs": {
-    "url": "https://github.com/qualc/vsfx/issues"
-  },
-  "bundleDependencies": false,
-  "dependencies": {
-    "content-type": "^1.0.4",
-    "depd": "^2.0.0",
-    "etag": "^1.8.1",
-    "fresh": "^0.5.2",
-    "mime": "^2.4.4",
-    "path-to-regexp": "^6.1.0",
-    "reflect-metadata": "^0.1.13",
-    "statuses": "^1.5.0"
-  },
-  "deprecated": false,
-  "description": "",
-  "devDependencies": {
-    "@types/node": "^13.1.2",
-    "@types/statuses": "^1.5.0"
-  },
-  "directories": {
-    "test": "test"
-  },
-  "homepage": "https://github.com/qualc/vsfx#readme",
-  "license": "ISC",
-  "main": "./dist/index.js",
-  "name": "vsfx",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/qualc/vsfx.git"
-  },
-  "scripts": {
-    "build": "tsc --target ES5",
-    "tsc-decorators": "tsc --target ES5 --experimentalDecorators",
-    "watch": "tsc --target ES5 -w --listFiles"
-  },
-  "version": "0.0.8"
+    "version": "0.0.9",
+    "main": "./dist/index.js",
+    "directories": {
+        "test": "test"
+    },
+    "scripts": {
+        "build": "tsc --target ES5",
+        "watch": "tsc --target ES5 -w --listFiles",
+        "tsc-decorators": "tsc --target ES5 --experimentalDecorators"
+    },
+    "homepage": "https://github.com/qualc/vsfx#readme",
+    "bugs": {
+        "url": "https://github.com/qualc/vsfx/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/qualc/vsfx.git"
+    },
+    "author": "",
+    "license": "ISC",
+    "description": "",
+    "dependencies": {
+        "content-type": "^1.0.4",
+        "depd": "^2.0.0",
+        "etag": "^1.8.1",
+        "fresh": "^0.5.2",
+        "mime": "^2.4.4",
+        "path-to-regexp": "^6.1.0",
+        "reflect-metadata": "^0.1.13",
+        "statuses": "^1.5.0"
+    },
+    "devDependencies": {
+        "@types/node": "^13.1.2",
+        "@types/statuses": "^1.5.0"
+    }
 }
