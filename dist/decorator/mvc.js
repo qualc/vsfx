@@ -15,7 +15,7 @@ exports.Interceptors = function (isInterceptors) {
         if (!value.opts) {
             value.opts = {};
         }
-        // value.opts.interceptors = isInterceptors;
+        value.opts.interceptors = isInterceptors;
         Reflect.defineMetadata(global_1.CONTROLLER_METADATA, value, target);
     };
 };

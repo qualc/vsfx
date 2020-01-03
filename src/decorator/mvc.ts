@@ -11,7 +11,7 @@ export const Interceptors = (isInterceptors: Boolean = true): ClassDecorator => 
         if (!value.opts) {
             value.opts = {};
         }
-        // value.opts.interceptors = isInterceptors;
+        value.opts.interceptors = isInterceptors;
         Reflect.defineMetadata(CONTROLLER_METADATA, value, target);
     };
 };
