@@ -139,52 +139,7 @@ var Router = /** @class */ (function () {
                 try {
                     req.route = route;
                     req.params = route.params || {};
-                    // route.handle(req, res, next);
-                    if (route.type === 0) {
-                        req.params = route.params || {};
-                        if (interceptStack.length) {
-                            var cindex_1 = 0;
-                            var next2_1 = function (err) {
-                                if (err) {
-                                    res.statusCode = 500;
-                                    res.end(err.stack);
-                                    return;
-                                }
-                                if (cindex_1 == interceptStack.length) {
-                                    route.handle(req, res, next);
-                                    return;
-                                }
-                                var match = null, intercept = {};
-                                while (match !== true && cindex_1 < interceptStack.length) {
-                                    intercept = interceptStack[cindex_1++];
-                                    if (!intercept) {
-                                        continue;
-                                    }
-                                    if (!method || (intercept.method !== 'all' && method !== intercept.method)) {
-                                        continue;
-                                    }
-                                    match = _this.match(intercept, path);
-                                    if (match !== true) {
-                                        continue;
-                                    }
-                                }
-                                if (match && cindex_1 <= interceptStack.length) {
-                                    intercept.handle(req, res, next2_1);
-                                }
-                                else if (cindex_1 >= interceptStack.length) {
-                                    route.handle(req, res, next);
-                                }
-                            };
-                            next2_1();
-                            return;
-                        }
-                        else {
-                            route.handle(req, res, next);
-                        }
-                    }
-                    else {
-                        route.handle(req, res, next);
-                    }
+                    route.handle(req, res, next);
                 }
                 catch (e) {
                     res.statusCode = 500;

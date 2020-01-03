@@ -18,6 +18,26 @@ exports.Interceptors = function (isInterceptors) {
         value.opts.interceptors = isInterceptors;
         Reflect.defineMetadata(global_1.CONTROLLER_METADATA, value, target);
     };
+    // return (target, key, descriptor) => {
+    //     if (target && key && descriptor) {
+    //         let metadata = Reflect.getMetadata(CONTROLLER_METADATA, <any>descriptor.value);
+    //         if (!metadata) {
+    //             metadata = {};
+    //             metadata.opts = {};
+    //         } else if (metadata && !metadata.opts) {
+    //             metadata.opts = {};
+    //         }
+    //         metadata.opts.interceptors = isInterceptors;
+    //         Reflect.defineMetadata(CONTROLLER_METADATA, metadata, <any>descriptor.value);
+    //     } else {
+    //         const value = Reflect.getMetadata(CONTROLLER_METADATA, target) || {};
+    //         if (!value.opts) {
+    //             value.opts = {};
+    //         }
+    //         value.opts.interceptors = isInterceptors;
+    //         Reflect.defineMetadata(CONTROLLER_METADATA, value, target);
+    //     }
+    // };
 };
 exports.Controller = function (path, opts) {
     if (opts === void 0) { opts = {}; }
@@ -47,20 +67,31 @@ exports.Service = function (serviceName) {
         }
     };
 };
-var createMethodsDecorator = function (method, opts) {
+var createMethodsDecorator = function (method) { return function (path, opts) {
     if (opts === void 0) { opts = {}; }
-    return function (path) {
-        return function (target, key, descriptor) {
-            var value = {
-                path: path,
-                opts: opts,
-                _type: 'method'
-            };
-            Reflect.defineMetadata(global_1.CONTROLLER_METADATA, value, descriptor.value);
-            Reflect.defineMetadata(global_1.METHOD_METADATA, method, descriptor.value);
+    return function (target, key, descriptor) {
+        var value = {
+            path: path,
+            opts: opts,
+            _type: 'method'
         };
+        // Reflect.defineMetadata(CONTROLLER_METADATA, value, <any>descriptor.value);
+        var metadata = Reflect.getMetadata(global_1.CONTROLLER_METADATA, descriptor.value);
+        if (!metadata) {
+            metadata = {
+                path: path,
+                _type: 'method',
+                opts: opts
+            };
+        }
+        else if (metadata && !metadata.opts) {
+            metadata.opts = {};
+        }
+        Object.assign(metadata.opts, opts);
+        Reflect.defineMetadata(global_1.CONTROLLER_METADATA, metadata, descriptor.value);
+        Reflect.defineMetadata(global_1.METHOD_METADATA, method, descriptor.value);
     };
-};
+}; };
 exports.Get = createMethodsDecorator('get');
 exports.Post = createMethodsDecorator('post');
 exports.default = {

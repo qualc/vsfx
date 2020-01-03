@@ -60,13 +60,9 @@ var Application = /** @class */ (function () {
             handle = path;
             path = '/';
         }
-        this.router.useMiddleware(path, handle, 0);
-        // if (typeof path == 'function') {
-        //     handle = path;
-        //     path = '/';
-        // }
-        // const reg = pathToRegexp(path, [], { end: false });
-        // this.interceptStack.push({ path, handle, reg });
+        // this.router.useMiddleware(path, <RouteHandle>handle, 0);
+        var reg = path_to_regexp_1.pathToRegexp(path, [], { end: false });
+        this.interceptStack.push({ path: path, handle: handle, reg: reg, method: 'all' });
     };
     Application.prototype.static = function (filePath) {
         this.staticStack.push(path_to_regexp_1.pathToRegexp(filePath, [], { end: false }));

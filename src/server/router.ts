@@ -132,50 +132,7 @@ class Router {
                 try {
                     req.route = route;
                     req.params = route.params || {};
-                    // route.handle(req, res, next);
-                    if (route.type === 0) {
-                        req.params = route.params || {};
-                        if (interceptStack.length) {
-                            let cindex = 0;
-                            const next2 = (err?: Error) => {
-                                if (err) {
-                                    res.statusCode = 500;
-                                    res.end(err.stack);
-                                    return;
-                                }
-                                if (cindex == interceptStack.length) {
-                                    route.handle(req, res, next);
-                                    return;
-                                }
-                                let match: any = null,
-                                    intercept = <Route>{};
-                                while (match !== true && cindex < interceptStack.length) {
-                                    intercept = interceptStack[cindex++];
-                                    if (!intercept) {
-                                        continue;
-                                    }
-                                    if (!method || (intercept.method !== 'all' && method !== intercept.method)) {
-                                        continue;
-                                    }
-                                    match = this.match(intercept, path);
-                                    if (match !== true) {
-                                        continue;
-                                    }
-                                }
-                                if (match && cindex <= interceptStack.length) {
-                                    intercept.handle(req, res, next2);
-                                } else if (cindex >= interceptStack.length) {
-                                    route.handle(req, res, next);
-                                }
-                            };
-                            next2();
-                            return;
-                        } else {
-                            route.handle(req, res, next);
-                        }
-                    } else {
-                        route.handle(req, res, next);
-                    }
+                    route.handle(req, res, next);
                 } catch (e) {
                     res.statusCode = 500;
                     res.end(e.stack);

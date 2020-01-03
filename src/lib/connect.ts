@@ -39,13 +39,13 @@ function _defineMetadata(baseUrl: string, classs: [any?]) {
             const item = classItem[key];
             const metadata = Reflect.getMetadata(CONTROLLER_METADATA, item);
             if (!metadata) return;
-            const { path, baseOpts = {} } = metadata;
+            const { path, opts = {} } = metadata;
             const controllerPath = _validatePath(baseUrl + path);
-            mapRoute(new item(), controllerPath, baseOpts);
+            mapRoute(new item(), controllerPath, opts);
         });
     });
 }
-
+let index = 0;
 function mapRoute(instance: Object, baseUrl, baseOpts) {
     const prototype = Object.getPrototypeOf(instance);
 
@@ -62,16 +62,57 @@ function mapRoute(instance: Object, baseUrl, baseOpts) {
         path = baseUrl + _validatePath(path);
         path = path.replace(/(\w+)\/$/, '');
         Object.assign(baseOpts, opts);
-        use(method, path, function(req: any, res: any, next: NextFunction) {
-            req.opts = Object.freeze(opts);
-            Promise.resolve(handle.call(instance, req, res, next)).catch(err => {
-                if (typeof req.app?.catchFn == 'function') {
-                    req.app?.catchFn(err, req, res, next);
-                } else {
-                    deprecate(err.stack);
-                    res.sendStatus(500);
-                }
-            });
+        use(method, path, (req: any, res: any, next: NextFunction) => {
+            req.opts = Object.freeze(baseOpts);
+            const { interceptStack } = req.app;
+            if (interceptStack.length) {
+                let cindex = 0;
+                const next2 = (err?: Error) => {
+                    if (err) {
+                        res.statusCode = 500;
+                        res.end(err.stack);
+                        return;
+                    }
+                    if (cindex == interceptStack.length) {
+                        Resolve();
+                        return;
+                    }
+                    let match: any = null,
+                        intercept = <any>{};
+                    while (match !== true && cindex < interceptStack.length) {
+                        intercept = interceptStack[cindex++];
+                        if (!intercept) {
+                            continue;
+                        }
+                        if (!method || (intercept.method !== 'all' && method !== intercept.method)) {
+                            continue;
+                        }
+                        match = handleMatch(intercept, path);
+                        if (match !== true) {
+                            continue;
+                        }
+                    }
+                    if (match && cindex <= interceptStack.length) {
+                        intercept.handle(req, res, next2);
+                    } else if (cindex >= interceptStack.length) {
+                        Resolve();
+                    }
+                };
+                next2();
+                return;
+            } else {
+                Resolve();
+            }
+            function Resolve() {
+                Promise.resolve(handle.call(instance, req, res, next)).catch(err => {
+                    if (typeof req.app?.catchFn == 'function') {
+                        req.app?.catchFn(err, req, res, next);
+                    } else {
+                        deprecate(err.stack);
+                        res.sendStatus(500);
+                    }
+                });
+            }
         });
         // use(method, path, handle.bind(instance));
         // return {
@@ -114,3 +155,26 @@ export const recursionFile = (cpaths: string): [any?] => {
     }
     return classs;
 };
+
+function handleMatch(route: any, path: string) {
+    console.log(route, path);
+    const { reg } = route;
+    let match = (path && reg && reg.exec(path)) || false;
+    if (!match) {
+        return false;
+    }
+    let { keys, params } = route;
+    for (let i = 1; i < match.length; i++) {
+        const key = (keys[i - 1] || {}).name;
+        // 如果 val 是字符串, 就 decodeURIComponent 一下
+        let val = match[i];
+        if (typeof val == 'string') {
+            val = decodeURIComponent(val);
+        }
+        if (val !== undefined || !Object.hasOwnProperty.call(params, key)) {
+            params[key] = val;
+        }
+    }
+    route.params = params;
+    return true;
+}

@@ -1,5 +1,5 @@
-/// <reference path="../../vsfx.d.ts" />
 /// <reference types="node" />
+/// <reference types="vsfx/vsfx" />
 import { VRequest } from '../../vsfx';
 import { ServerResponse } from 'http';
 import Application from './application';

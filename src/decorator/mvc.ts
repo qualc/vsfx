@@ -14,7 +14,28 @@ export const Interceptors = (isInterceptors: Boolean = true): ClassDecorator => 
         value.opts.interceptors = isInterceptors;
         Reflect.defineMetadata(CONTROLLER_METADATA, value, target);
     };
+    // return (target, key, descriptor) => {
+    //     if (target && key && descriptor) {
+    //         let metadata = Reflect.getMetadata(CONTROLLER_METADATA, <any>descriptor.value);
+    //         if (!metadata) {
+    //             metadata = {};
+    //             metadata.opts = {};
+    //         } else if (metadata && !metadata.opts) {
+    //             metadata.opts = {};
+    //         }
+    //         metadata.opts.interceptors = isInterceptors;
+    //         Reflect.defineMetadata(CONTROLLER_METADATA, metadata, <any>descriptor.value);
+    //     } else {
+    //         const value = Reflect.getMetadata(CONTROLLER_METADATA, target) || {};
+    //         if (!value.opts) {
+    //             value.opts = {};
+    //         }
+    //         value.opts.interceptors = isInterceptors;
+    //         Reflect.defineMetadata(CONTROLLER_METADATA, value, target);
+    //     }
+    // };
 };
+
 export const Controller = (path: string, opts: object = {}): ClassDecorator => {
     return target => {
         const value = Reflect.getMetadata(CONTROLLER_METADATA, target) || {};
@@ -41,14 +62,27 @@ export const Service = (serviceName?: string): ClassDecorator => {
         }
     };
 };
-const createMethodsDecorator = (method: string, opts: object = {}) => (path: string): MethodDecorator => {
+const createMethodsDecorator = (method: string) => (path: string, opts: object = {}): MethodDecorator => {
     return (target, key, descriptor) => {
         const value = {
             path,
             opts,
             _type: 'method'
         };
-        Reflect.defineMetadata(CONTROLLER_METADATA, value, <any>descriptor.value);
+        // Reflect.defineMetadata(CONTROLLER_METADATA, value, <any>descriptor.value);
+
+        let metadata = Reflect.getMetadata(CONTROLLER_METADATA, <any>descriptor.value);
+        if (!metadata) {
+            metadata = {
+                path,
+                _type: 'method',
+                opts
+            };
+        } else if (metadata && !metadata.opts) {
+            metadata.opts = {};
+        }
+        Object.assign(metadata.opts, opts);
+        Reflect.defineMetadata(CONTROLLER_METADATA, metadata, <any>descriptor.value);
         Reflect.defineMetadata(METHOD_METADATA, method, <any>descriptor.value);
     };
 };

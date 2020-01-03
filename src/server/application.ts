@@ -16,6 +16,7 @@ type Config = {
 type Intercept = {
     path?: string;
     reg?: RegExp;
+    method: string;
     handle?: Function;
 };
 
@@ -60,13 +61,10 @@ class Application {
             handle = path;
             path = '/';
         }
-        this.router.useMiddleware(path, <RouteHandle>handle, 0);
-        // if (typeof path == 'function') {
-        //     handle = path;
-        //     path = '/';
-        // }
-        // const reg = pathToRegexp(path, [], { end: false });
-        // this.interceptStack.push({ path, handle, reg });
+
+        // this.router.useMiddleware(path, <RouteHandle>handle, 0);
+        const reg = pathToRegexp(path, [], { end: false });
+        this.interceptStack.push({ path, handle, reg, method: 'all' });
     }
     static(filePath: string) {
         this.staticStack.push(pathToRegexp(filePath, [], { end: false }));

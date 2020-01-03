@@ -47,12 +47,13 @@ function _defineMetadata(baseUrl, classs) {
             var metadata = Reflect.getMetadata(global_1.CONTROLLER_METADATA, item);
             if (!metadata)
                 return;
-            var path = metadata.path, _a = metadata.baseOpts, baseOpts = _a === void 0 ? {} : _a;
+            var path = metadata.path, _a = metadata.opts, opts = _a === void 0 ? {} : _a;
             var controllerPath = _validatePath(baseUrl + path);
-            mapRoute(new item(), controllerPath, baseOpts);
+            mapRoute(new item(), controllerPath, opts);
         });
     });
 }
+var index = 0;
 function mapRoute(instance, baseUrl, baseOpts) {
     var prototype = Object.getPrototypeOf(instance);
     // // 筛选出类的 methodName
@@ -69,17 +70,59 @@ function mapRoute(instance, baseUrl, baseOpts) {
         path = path.replace(/(\w+)\/$/, '');
         Object.assign(baseOpts, opts);
         server_1.use(method, path, function (req, res, next) {
-            req.opts = Object.freeze(opts);
-            Promise.resolve(handle.call(instance, req, res, next)).catch(function (err) {
-                var _a, _b;
-                if (typeof ((_a = req.app) === null || _a === void 0 ? void 0 : _a.catchFn) == 'function') {
-                    (_b = req.app) === null || _b === void 0 ? void 0 : _b.catchFn(err, req, res, next);
-                }
-                else {
-                    deprecate(err.stack);
-                    res.sendStatus(500);
-                }
-            });
+            req.opts = Object.freeze(baseOpts);
+            var interceptStack = req.app.interceptStack;
+            if (interceptStack.length) {
+                var cindex_1 = 0;
+                var next2_1 = function (err) {
+                    if (err) {
+                        res.statusCode = 500;
+                        res.end(err.stack);
+                        return;
+                    }
+                    if (cindex_1 == interceptStack.length) {
+                        Resolve();
+                        return;
+                    }
+                    var match = null, intercept = {};
+                    while (match !== true && cindex_1 < interceptStack.length) {
+                        intercept = interceptStack[cindex_1++];
+                        if (!intercept) {
+                            continue;
+                        }
+                        if (!method || (intercept.method !== 'all' && method !== intercept.method)) {
+                            continue;
+                        }
+                        match = handleMatch(intercept, path);
+                        if (match !== true) {
+                            continue;
+                        }
+                    }
+                    if (match && cindex_1 <= interceptStack.length) {
+                        intercept.handle(req, res, next2_1);
+                    }
+                    else if (cindex_1 >= interceptStack.length) {
+                        Resolve();
+                    }
+                };
+                next2_1();
+                return;
+            }
+            else {
+                Resolve();
+            }
+            function Resolve() {
+                Promise.resolve(handle.call(instance, req, res, next)).catch(function (err) {
+                    var _a, _b;
+                    if (typeof ((_a = req.app) === null || _a === void 0 ? void 0 : _a.catchFn) == 'function') {
+                        (_b = req.app) === null || _b === void 0 ? void 0 : _b.catchFn(err, req, res, next);
+                    }
+                    else {
+                        deprecate(err.stack);
+                        res.sendStatus(500);
+                    }
+                });
+            }
         });
         // use(method, path, handle.bind(instance));
         // return {
@@ -124,3 +167,25 @@ exports.recursionFile = function (cpaths) {
     }
     return classs;
 };
+function handleMatch(route, path) {
+    console.log(route, path);
+    var reg = route.reg;
+    var match = (path && reg && reg.exec(path)) || false;
+    if (!match) {
+        return false;
+    }
+    var keys = route.keys, params = route.params;
+    for (var i = 1; i < match.length; i++) {
+        var key = (keys[i - 1] || {}).name;
+        // 如果 val 是字符串, 就 decodeURIComponent 一下
+        var val = match[i];
+        if (typeof val == 'string') {
+            val = decodeURIComponent(val);
+        }
+        if (val !== undefined || !Object.hasOwnProperty.call(params, key)) {
+            params[key] = val;
+        }
+    }
+    route.params = params;
+    return true;
+}
