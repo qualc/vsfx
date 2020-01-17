@@ -36,7 +36,7 @@ export const Interceptors = (isInterceptors: Boolean = true): ClassDecorator => 
     // };
 };
 
-export const Controller = (path: string, opts: object = {}): ClassDecorator => {
+export const Controller = (path: string = '/', opts: object = {}): ClassDecorator => {
     return target => {
         const value = Reflect.getMetadata(CONTROLLER_METADATA, target) || {};
         value.path = path;

@@ -126,7 +126,7 @@ function mapRoute(instance: Object, baseUrl, baseOpts) {
 
 function _validatePath(path: string) {
     if (!path) return '/';
-    path = path.replace(/^(\/*)/, '/');
+    path = path.replace(/^(\/+)/g, '/').replace(/\/+$/g, '');
     return path;
 }
 

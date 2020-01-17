@@ -1,4 +1,4 @@
-/// <reference types="vsfx/vsfx" />
+/// <reference path="../../vsfx.d.ts" />
 import { RouteHandle, VRequest, VResponse } from '../../vsfx';
 import pathRegexp from 'path-to-regexp';
 import Application from './application';

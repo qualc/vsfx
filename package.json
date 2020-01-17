@@ -1,6 +1,6 @@
 {
     "name": "vsfx",
-    "version": "0.0.9",
+    "version": "0.0.12",
     "main": "./dist/index.js",
     "directories": {
         "test": "test"

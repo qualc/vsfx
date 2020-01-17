@@ -68,9 +68,9 @@ function mapRoute(instance, baseUrl, baseOpts) {
         var method = Reflect.getMetadata(global_1.METHOD_METADATA, handle);
         path = baseUrl + _validatePath(path);
         path = path.replace(/(\w+)\/$/, '');
-        Object.assign(baseOpts, opts);
+        var _opts = Object.assign({}, baseOpts, opts);
         server_1.use(method, path, function (req, res, next) {
-            req.opts = Object.freeze(baseOpts);
+            req.opts = Object.freeze(_opts);
             var interceptStack = req.app.interceptStack;
             if (interceptStack.length) {
                 var cindex_1 = 0;

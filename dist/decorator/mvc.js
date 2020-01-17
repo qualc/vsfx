@@ -40,6 +40,7 @@ exports.Interceptors = function (isInterceptors) {
     // };
 };
 exports.Controller = function (path, opts) {
+    if (path === void 0) { path = '/'; }
     if (opts === void 0) { opts = {}; }
     return function (target) {
         var value = Reflect.getMetadata(global_1.CONTROLLER_METADATA, target) || {};
